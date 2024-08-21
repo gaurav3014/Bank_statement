@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
+import matplotlib.pyplot as plt
 import json
 from datetime import datetime
 from collections import defaultdict
@@ -72,25 +71,35 @@ if transactions is not None:
     
     # Transaction Size Distribution
     st.subheader('Transaction Size Distribution')
-    fig = px.bar(transaction_size_distribution, x=transaction_size_distribution.index, y=transaction_size_distribution.values, 
-                 labels={'index': 'Transaction Size', 'y': 'Count'}, title='Transaction Size Distribution')
-    st.plotly_chart(fig)
+    fig, ax = plt.subplots()
+    transaction_size_distribution.plot(kind='bar', ax=ax, color='skyblue')
+    ax.set_xlabel('Transaction Size')
+    ax.set_ylabel('Count')
+    ax.set_title('Transaction Size Distribution')
+    st.pyplot(fig)
     
     # Transaction Type Frequency
     st.subheader('Frequency of Transaction Types')
-    fig = px.bar(transactions_type_count, x=transactions_type_count.index, y=transactions_type_count.values, 
-                 labels={'index': 'Transaction Type', 'y': 'Frequency'}, title='Frequency of Transaction Types')
-    st.plotly_chart(fig)
+    fig, ax = plt.subplots()
+    transactions_type_count.plot(kind='bar', ax=ax, color='lightgreen')
+    ax.set_xlabel('Transaction Type')
+    ax.set_ylabel('Frequency')
+    ax.set_title('Frequency of Transaction Types')
+    st.pyplot(fig)
     
     # Trend of Account Balance Over Time
     st.subheader('Trend of Account Balance Over Time')
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=timestamps, y=balances, mode='lines+markers', name='Account Balance'))
+    fig, ax = plt.subplots()
+    ax.plot(timestamps, balances, marker='o', linestyle='-')
     for _, row in significant_changes.iterrows():
-        fig.add_annotation(x=row['transactionTimestamp'], y=row['currentBalance'],
-                           text=f'Significant Change\n{row["balance_change"]:.2f}', showarrow=True, arrowhead=1)
-    fig.update_layout(title='Trend of Account Balance Over Time', xaxis_title='Date', yaxis_title='Account Balance')
-    st.plotly_chart(fig)
+        ax.annotate(f'Significant Change\n{row["balance_change"]:.2f}', 
+                    xy=(row['transactionTimestamp'], row['currentBalance']),
+                    xytext=(row['transactionTimestamp'], row['currentBalance'] + 1000),
+                    arrowprops=dict(facecolor='red', shrink=0.05))
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Account Balance')
+    ax.set_title('Trend of Account Balance Over Time')
+    st.pyplot(fig)
     
     # Frequency and Amount of Spending by Transaction Mode
     st.subheader('Frequency and Amount of Spending by Transaction Mode')
@@ -98,21 +107,26 @@ if transactions is not None:
     amounts = [categories[mode]['amount'] for mode in modes]
     frequencies = [categories[mode]['frequency'] for mode in modes]
     
-    fig = go.Figure()
-    fig.add_trace(go.Bar(x=modes, y=amounts, name='Total Amount ($)', marker_color='blue'))
-    fig.add_trace(go.Scatter(x=modes, y=frequencies, mode='lines+markers', name='Frequency', yaxis='y2', marker_color='red'))
-    fig.update_layout(title='Frequency and Amount of Spending by Transaction Mode',
-                      xaxis_title='Transaction Mode',
-                      yaxis_title='Total Amount ($)',
-                      yaxis2=dict(title='Frequency', overlaying='y', side='right'))
-    st.plotly_chart(fig)
+    fig, ax1 = plt.subplots()
+    ax2 = ax1.twinx()
+    ax1.bar(modes, amounts, color='blue', alpha=0.6, label='Total Amount ($)')
+    ax2.plot(modes, frequencies, color='red', marker='o', label='Frequency', linestyle='-')
+    ax1.set_xlabel('Transaction Mode')
+    ax1.set_ylabel('Total Amount ($)', color='blue')
+    ax2.set_ylabel('Frequency', color='red')
+    ax1.set_title('Frequency and Amount of Spending by Transaction Mode')
+    ax1.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+    st.pyplot(fig)
     
     # Income Transactions Over Time
     st.subheader('Income Transactions Over Time')
-    fig = go.Figure()
-    fig.add_trace(go.Scatter(x=income_timestamps, y=income_amounts, mode='markers', name='Income Amount'))
-    fig.update_layout(title='Income Transactions Over Time', xaxis_title='Date', yaxis_title='Income Amount ($)')
-    st.plotly_chart(fig)
+    fig, ax = plt.subplots()
+    ax.scatter(income_timestamps, income_amounts, color='purple')
+    ax.set_xlabel('Date')
+    ax.set_ylabel('Income Amount ($)')
+    ax.set_title('Income Transactions Over Time')
+    st.pyplot(fig)
     
     # Display analysis on income patterns
     st.write("The data shows income transactions over time. There is no clear trend, but there might be seasonality with peaks in December and January.")
