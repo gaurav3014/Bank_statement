@@ -5,3 +5,4 @@ json
 datetime
 collections
 plotly
+plotly.graph_objects
