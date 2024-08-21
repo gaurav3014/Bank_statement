@@ -6,3 +6,4 @@ datetime
 collections
 plotly
 plotly.graph_objects
+plotly.express 
